@@ -1,0 +1,29 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.12", "3.13"]
+    env:
+      UV_PYTHON: ${{ matrix.python }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.9.0"
+      - run: uv sync --frozen --all-extras
+      - run: uv run ruff check src tests scripts/check_wheel.py examples/headless_booking.py
+      - run: uv run ruff format --check src tests scripts/check_wheel.py examples/headless_booking.py
+      - run: uv run mypy
+      - run: uv run pytest --cov
+      - run: uv build
+      - run: uv run python scripts/check_wheel.py dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: reports/

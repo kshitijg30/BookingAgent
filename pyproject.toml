@@ -1,0 +1,72 @@
+[project]
+name = "booking-agent"
+version = "0.2.0"
+description = "A chat agent that books, reschedules and cancels home-service appointments without double-booking or acting without approval."
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = ["pydantic>=2.9,<3"]
+
+[project.optional-dependencies]
+openai = ["openai>=1.60,<3"]
+sqlalchemy = ["sqlalchemy>=2.0.36,<3"]
+postgres = ["sqlalchemy>=2.0.36,<3", "psycopg[binary]>=3.2,<4"]
+http = ["fastapi>=0.115,<1", "uvicorn>=0.32,<1", "pydantic-settings>=2.6,<3"]
+demo = ["booking-agent[http,openai,sqlalchemy]"]
+all = ["booking-agent[demo,postgres]"]
+
+[project.scripts]
+booking-agent = "booking_agent.cli:main"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3,<9",
+  "hypothesis>=6.120,<7",
+  "mypy>=1.13,<2",
+  "ruff>=0.8,<1",
+  "pytest-cov>=6,<8",
+]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/booking_agent"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q -p no:cacheprovider"
+markers = ["scenario(id, title, expected): an eval scenario that appears in the generated eval table"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+packages = ["booking_agent", "tests"]
+plugins = ["pydantic.mypy"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "PT", "N", "C90"]
+# RUF001-003: ₹ and en dashes are intended. PT018: compound asserts read fine in scenario tests.
+# N818: ProviderTimeout/LimitHit are not "...Error" by design. UP046/UP047: keep TypeVar generics.
+# B023: the flagged closures run inside the same loop iteration.
+ignore = ["RUF001", "RUF002", "RUF003", "PT018", "N818", "UP046", "UP047", "B023"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
+
+[tool.coverage.run]
+source = ["booking_agent"]
+
+[tool.coverage.report]
+fail_under = 80  # measured 84% when this was added; CI fails if coverage drops below this
+skip_covered = true
+show_missing = true
