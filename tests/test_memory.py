@@ -10,7 +10,7 @@ import pytest
 
 from booking_agent.model import call, say
 from tests.conftest import MakeWorld, Record, memory_ops, remove_op, set_op
-from tests.helpers import cards, context_sent, memory, set_memory
+from tests.helpers import card, cards, context_sent, find, first_slot, memory, offers, set_memory
 
 
 @pytest.mark.scenario(
@@ -270,3 +270,54 @@ def test_older_turns_are_folded_into_a_summary(make_world: MakeWorld) -> None:
     assert "The user chatted about plumbers." in context_sent(world)
     history = [m for m in sent if m["role"] in ("user", "assistant")]
     assert len(history) <= 17 and not any(m["content"] == "message 0" for m in history)  # last 8 turns + this message
+
+
+@pytest.mark.scenario(
+    id="S39",
+    title="Avoided provider in another chat",
+    expected="a provider the user said never to recommend is not offered or quoted in any later chat",
+)
+def test_avoided_provider_is_never_offered_in_another_chat(make_world: MakeWorld, record: Record) -> None:
+    world = make_world()
+    world.model.then(find(), say("Options."))
+    world.say("a plumber in Koramangala", conversation="control")
+    control = world.search("control")
+    assert control is not None
+    names = [offer.name for offer in control.results]
+    assert "Iyer Plumbing" in names, names  # without the memory it is offered
+
+    world.memory_model.then(say(memory_ops(set_op("avoid_providers", ["Iyer Plumbing"], stated=True))))
+    world.model.then(say("Noted, I won't suggest Iyer Plumbing."))
+    world.say("never ever recommend Iyer Plumbing", conversation="chat-a")
+    world.run_jobs()
+    assert memory(world)["avoid_providers"]["value"] == ["Iyer Plumbing"]
+
+    world.model.then(find(), say("Options."))
+    reply = world.say("a plumber in Koramangala", conversation="chat-b")
+    chat_b = world.search("chat-b")
+    assert chat_b is not None and card(reply, "offers")["search_id"] == chat_b.id  # the card shows this search
+    assert chat_b.results and "Iyer Plumbing" not in [offer.name for offer in chat_b.results]
+    provider_id, start = first_slot(world, conversation="chat-b")
+    world.pick(provider_id, start, conversation="chat-b")
+    assert all(quote.provider_name != "Iyer Plumbing" for quote in world.quotes())
+    record(
+        actual="Iyer Plumbing offered in a control chat, absent from chat B's offers card and quotes after avoid_providers"
+    )
+
+
+def test_a_disliked_list_in_preferred_providers_is_read_as_avoid_providers(make_world: MakeWorld) -> None:
+    world = make_world()
+    set_memory(world, "preferred_providers", {"disliked": ["iyer plumbing"]})
+    world.model.then(find(), say("Options."))
+    world.say("a plumber in Koramangala")
+    assert "Iyer Plumbing" not in [offer.name for offer in offers(world)]
+    assert world.search() is not None and world.search().criteria.provider_id is None  # type: ignore[union-attr]
+
+
+def test_preferred_time_prefills_times_when_the_model_passed_none(make_world: MakeWorld) -> None:
+    world = make_world()
+    set_memory(world, "preferred_time", "evening")
+    world.model.then(find(times=None), say("Options."))
+    world.say("a plumber in Koramangala")
+    search = world.search()
+    assert search is not None and [(t.from_time.hour, t.to_time.hour) for t in search.criteria.times] == [(17, 22)]

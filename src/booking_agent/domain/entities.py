@@ -92,6 +92,7 @@ class Criteria(Frozen):
     replaces_booking_id: str | None = None
     reschedule_booking_id: str | None = None  # set by propose_reschedule: picks on this search move that booking
     exclude_provider_ids: tuple[str, ...] = ()  # providers never offered (the one that cancelled)
+    exclude_provider_names: tuple[str, ...] = ()  # providers the user never wants (from memory), matched by name
     relaxed: list[str] = Field(default_factory=list)  # constraints the research job loosened, in order
 
     def missing(self) -> list[str]:

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from typing import Any
 
 from booking_agent.domain.memory import MAX_KEYS, Memory, MemoryOperation, valid_key, valid_value
@@ -23,8 +23,12 @@ _FORGOTTEN_PREFIX = "Forgotten: "
 _FENCED = re.compile(r"```[A-Za-z]*\s*(.*?)\s*```", re.DOTALL)
 _MEMORY_INSTRUCTION = (
     "You maintain a JSON object of durable facts about a user that help book home services. "
-    "Keys are lowercase snake_case. Known keys: area (string), max_budget (rupees, number), earliest_time "
-    '("HH:MM"), preferred_providers (object). Other short keys are allowed. '
+    "Use ONLY these keys and value shapes, and never invent another key: "
+    'area (string); max_budget (integer, rupees); earliest_time (string "HH:MM"); '
+    'preferred_time ("morning" | "afternoon" | "evening"); '
+    'preferred_providers ({service: {"provider": provider name, "technician": name or null}}); '
+    "avoid_providers (list of provider names the user does not want, for example "
+    '["Iyer Plumbing"] after "never recommend Iyer Plumbing"). '
     "You get the current memory (every key with its value, source and confirmed flag) and the messages of the "
     "current turn. "
     'Return ONLY a JSON object {"operations": [...]}. An operation is {"op": "set", "key", "value", "stated"} '
@@ -60,13 +64,45 @@ def build_memory_messages(memory: Memory, turn: Sequence[tuple[str, str]]) -> li
     return [{"role": "system", "content": _MEMORY_INSTRUCTION}, {"role": "user", "content": content}]
 
 
+_CLOCK = re.compile(r"(?:[01]\d|2[0-3]):[0-5]\d")
+_PARTS = ("morning", "afternoon", "evening")
+
+
+def _text(value: object) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+
+def _preferred_providers(value: object) -> bool:
+    return (
+        isinstance(value, dict)
+        and bool(value)
+        and all(
+            _text(service)
+            and isinstance(entry, dict)
+            and _text(entry.get("provider"))
+            and (entry.get("technician") is None or _text(entry["technician"]))
+            for service, entry in value.items()
+        )
+    )
+
+
+_SHAPES: dict[str, Callable[[object], bool]] = {
+    "area": _text,
+    "max_budget": lambda v: isinstance(v, int) and not isinstance(v, bool) and v > 0,
+    "earliest_time": lambda v: isinstance(v, str) and _CLOCK.fullmatch(v) is not None,
+    "preferred_time": lambda v: v in _PARTS,
+    "preferred_providers": _preferred_providers,
+    "avoid_providers": lambda v: isinstance(v, list) and bool(v) and all(_text(name) for name in v),
+}
+
+
 def _parse_item(item: Any) -> MemoryOperation | None:
     if not isinstance(item, dict) or not valid_key(item.get("key")):
         return None
     key = item["key"]
     if item.get("op") == "remove":
         return MemoryOperation("remove", key)
-    if item.get("op") == "set" and valid_value(item.get("value")):
+    if item.get("op") == "set" and key in _SHAPES and _SHAPES[key](item.get("value")) and valid_value(item["value"]):
         return MemoryOperation("set", key, item["value"], item.get("stated") is True)
     return None
 

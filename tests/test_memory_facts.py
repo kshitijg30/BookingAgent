@@ -65,3 +65,25 @@ def test_values_are_capped_and_the_number_of_keys_is_limited() -> None:
     assert parse(reply({"op": "set", "key": "note", "value": long_value, "stated": True})) == []  # over 500 chars
     many = reply(*[{"op": "set", "key": f"k{i}", "value": i, "stated": True} for i in range(100)])
     assert len(parse(many)) < 100  # at most MAX_KEYS * 2 operations are read
+
+
+def test_unknown_keys_and_wrong_shapes_are_dropped() -> None:
+    ops = parse(
+        reply(
+            {"op": "set", "key": "preferred_providers", "value": {"disliked": ["Iyer Plumbing"]}, "stated": True},
+            {"op": "set", "key": "preferred_time", "value": "mornings", "stated": True},
+            {"op": "set", "key": "max_budget", "value": "1500", "stated": True},
+            {"op": "set", "key": "earliest_time", "value": "10am", "stated": True},
+            {"op": "set", "key": "favourite_colour", "value": "blue", "stated": True},
+            {"op": "set", "key": "avoid_providers", "value": "Iyer Plumbing", "stated": True},
+            {"op": "set", "key": "avoid_providers", "value": ["Iyer Plumbing"], "stated": True},
+            {"op": "set", "key": "preferred_time", "value": "morning", "stated": True},
+            {
+                "op": "set",
+                "key": "preferred_providers",
+                "value": {"plumber": {"provider": "Iyer Plumbing", "technician": None}},
+                "stated": True,
+            },
+        )
+    )
+    assert [op[1] for op in ops] == ["avoid_providers", "preferred_time", "preferred_providers"]

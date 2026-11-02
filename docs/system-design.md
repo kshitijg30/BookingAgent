@@ -45,15 +45,18 @@ PERSONAL_MEMORY (`user_profiles.memory`), one key per fact:
 ```json
 {"area": {"value": "Koramangala", "source": "stated", "confirmed": true},
  "earliest_time": {"value": "10:00", "source": "inferred", "confirmed": false, "asked": true},
- "preferred_providers": {"plumber": {"provider": "Iyer Plumbing", "technician": "Ravi"}}}
+ "preferred_providers": {"plumber": {"provider": "Iyer Plumbing", "technician": "Ravi"}},
+ "avoid_providers": {"value": ["Iyer Plumbing"], "source": "stated", "confirmed": true}}
 ```
+
+The memory model may only set these keys: area, max_budget (rupees), earliest_time, preferred_time (morning, afternoon, evening), preferred_providers and avoid_providers. Operations with other keys or wrong value shapes are dropped. Pre-fill reads confirmed keys; avoid_providers always adds `exclude_provider_names` to the criteria, and planning removes those providers by name (case-insensitive) before ranking. An older `preferred_providers: {"disliked": [...]}` is read as avoid_providers.
 
 `searches.criteria` (a correction copies the newest search with the changed fields; max_price is whole rupees):
 
 ```json
 {"service": "plumber", "area": "Indiranagar", "date_from": "2026-11-02", "date_to": "2026-11-08",
  "any_date": false, "days": ["mon", "tue", "wed", "thu", "fri"], "times": [{"from": "06:00", "to": "12:00"}],
- "max_price": 1500, "no_budget": false, "provider_id": null, "replaces_booking_id": null}
+ "max_price": 1500, "no_budget": false, "provider_id": null, "exclude_provider_names": [], "replaces_booking_id": null}
 ```
 
 Missing, so the model asks: service, area, dates (no date_from and not any_date), budget (no max_price and not no_budget).

@@ -58,7 +58,12 @@ def slot_fits(start: datetime, criteria: Criteria, window: tuple[date, date], no
 def _drop_reason(provider: ProviderSummary, criteria: Criteria) -> str | None:
     if provider.id in criteria.exclude_provider_ids:
         return "excluded"
-    if criteria.provider_id is not None and provider.id != criteria.provider_id:
+    if provider.name.casefold() in {name.casefold() for name in criteria.exclude_provider_names}:
+        return "excluded"
+    if criteria.provider_id is not None and criteria.provider_id.casefold() not in (
+        provider.id.casefold(),
+        provider.name.casefold(),
+    ):
         return "preferred"
     if criteria.max_price is not None and provider.price >= criteria.max_price:
         return "over_budget"
