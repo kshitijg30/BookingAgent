@@ -95,7 +95,6 @@ Line numbers refer to that file.
 | In-process SSE bus and rate limiter | They need one replica; a second one would miss updates and count separately | Postgres LISTEN/NOTIFY or Redis |
 | One worker thread | Jobs queue behind each other | Run more workers. Claims are atomic (`SKIP LOCKED` on Postgres), so this is safe |
 | Provider rate limits | Search, hold and verify calls grow with users | Budget calls per provider and back off on errors |
-| `conversations.messages` is one JSON list per conversation | It grows with every turn and is rewritten on each save | Cap it, or move messages to rows |
 | Database round trips per turn | Several queries per turn | Same region as the database, fewer queries, a sized pool |
 | Model cost and latency | 1 to 3 model calls per turn plus memory updates | Prompt caching, a cheaper memory model |
 
