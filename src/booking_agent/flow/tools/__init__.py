@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from booking_agent.config import ServiceCatalog
+from booking_agent.catalog import ServiceCatalog
 from booking_agent.flow.context import Deps, TurnContext
 from booking_agent.flow.tools.base import Tool, ToolOutput
 from booking_agent.flow.tools.booking import BOOKING_TOOLS, CHANGE_TOOLS, MEMORY_TOOLS

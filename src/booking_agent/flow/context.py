@@ -18,8 +18,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Literal
 
+from booking_agent.catalog import ServiceCatalog
 from booking_agent.clock import Clock, KeyedLocks
-from booking_agent.config import ServiceCatalog
 from booking_agent.domain.entities import ChatMessage, Conversation, JobRequest, Quote, Search
 from booking_agent.domain.exits import ExitReason
 from booking_agent.domain.planning import confirm_refusal

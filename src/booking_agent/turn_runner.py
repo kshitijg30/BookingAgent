@@ -23,8 +23,8 @@ import uuid
 from collections.abc import Callable, Sequence
 from datetime import datetime
 
+from booking_agent.catalog import ServiceCatalog
 from booking_agent.clock import Clock, KeyedLocks
-from booking_agent.config import ServiceCatalog
 from booking_agent.domain.entities import ChatMessage, Conversation, Job, JobRequest
 from booking_agent.domain.exits import ExitReason, exit_message
 from booking_agent.errors import AccessDenied, EnqueueFailed

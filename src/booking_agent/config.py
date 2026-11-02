@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from booking_agent.catalog import DEFAULT_CATALOG, ServiceCatalog
 from booking_agent.clock import Clock, SystemClock
-from booking_agent.domain.entities import Frozen
 from booking_agent.limits import Limits
 from booking_agent.model import ChatModel
 from booking_agent.ports import Repository
@@ -23,24 +23,6 @@ from booking_agent.provider.scenario import Scenario, default_history
 
 if TYPE_CHECKING:
     from booking_agent.agent import Agent
-
-
-class ServiceCatalog(Frozen):
-    services: tuple[str, ...] = ("plumber", "electrician", "ac_service", "carpenter", "cleaning")
-    areas: tuple[str, ...] = ("Koramangala", "Indiranagar", "HSR Layout", "Whitefield", "Jayanagar")
-    labels: dict[str, str] = Field(
-        default_factory=lambda: {
-            "plumber": "Plumbing",
-            "electrician": "Electrical",
-            "ac_service": "AC servicing",
-            "carpenter": "Carpentry",
-            "cleaning": "Cleaning",
-        }
-    )
-    timezone: str = "Asia/Kolkata"
-
-
-DEFAULT_CATALOG = ServiceCatalog()
 
 
 class Settings(BaseSettings):

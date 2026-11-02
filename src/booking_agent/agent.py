@@ -18,8 +18,8 @@ from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 
+from booking_agent.catalog import DEFAULT_CATALOG, ServiceCatalog
 from booking_agent.clock import Clock, KeyedLocks
-from booking_agent.config import DEFAULT_CATALOG, ServiceCatalog
 from booking_agent.flow.context import CardAction, Deps, TurnContext, TurnRequest, TurnResult, apply_card_action
 from booking_agent.flow.conversation import converse
 from booking_agent.flow.quotes import PickResult, pick_slot

@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import date, time
 from typing import Any
 
-from booking_agent.config import ServiceCatalog
+from booking_agent.catalog import ServiceCatalog
 from booking_agent.domain.entities import Criteria, TimeRange, Weekday
 from booking_agent.domain.planning import WEEKDAYS, part_range
 from booking_agent.flow.context import Deps, TurnContext

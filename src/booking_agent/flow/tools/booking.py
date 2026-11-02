@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from booking_agent.config import ServiceCatalog
+from booking_agent.catalog import ServiceCatalog
 from booking_agent.domain.entities import Booking, Criteria, Quote
 from booking_agent.domain.exits import ExitReason
 from booking_agent.domain.memory import confirm_key, remove_key, set_key, valid_key, valid_value

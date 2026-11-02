@@ -10,7 +10,7 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import Any
 
-from booking_agent.config import ServiceCatalog
+from booking_agent.catalog import ServiceCatalog
 from booking_agent.domain.entities import IST, Criteria, Quote
 from booking_agent.domain.untrusted import Untrusted
 

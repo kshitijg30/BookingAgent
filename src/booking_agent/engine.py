@@ -12,8 +12,8 @@ from zoneinfo import ZoneInfo
 
 from pydantic import AwareDatetime, Field, model_validator
 
+from booking_agent.catalog import ServiceCatalog
 from booking_agent.clock import Clock, SystemClock, ZonedClock
-from booking_agent.config import ServiceCatalog
 from booking_agent.domain.entities import Criteria, Frozen, ProviderBooking, ProviderOffer, Quote, TimeRange
 from booking_agent.domain.exits import ExitReason
 from booking_agent.domain.planning import MAX_DAYS_AHEAD, WEEKDAYS, part_range
