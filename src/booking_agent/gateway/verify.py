@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from booking_agent.domain.contract import BookingStatusResult, Outcome
-from booking_agent.domain.models import ProviderBooking
+from booking_agent.domain.entities import ProviderBooking
 from booking_agent.gateway.calls import ProviderCalls
 
 STATUS_CHECKS = 4  # get_booking_status calls before the outcome counts as unknown

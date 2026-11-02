@@ -1,12 +1,18 @@
-"""Time as a port. Domain code receives ``now``; it never reads the system clock."""
+"""Time as a port. Domain code receives ``now``; it never reads the system clock.
+
+Also ``KeyedLocks``: per-key reentrant coordination, with an optional durable repository boundary."""
 
 from __future__ import annotations
 
+import threading
 import time as _time
+from collections import defaultdict
+from collections.abc import Callable, Iterator
+from contextlib import AbstractContextManager, contextmanager
 from datetime import datetime, timedelta
 from typing import Protocol
 
-from booking_agent.domain.models import IST
+from booking_agent.domain.entities import IST
 
 
 class Clock(Protocol):
@@ -67,3 +73,21 @@ class ZonedClock:
 
     def sleep(self, seconds: float) -> None:
         self.source.sleep(seconds)
+
+
+class KeyedLocks:
+    def __init__(self, backend: Callable[[str], AbstractContextManager[object]] | None = None) -> None:
+        self._locks: dict[str, threading.RLock] = defaultdict(threading.RLock)
+        self._guard = threading.Lock()
+        self._backend = backend
+
+    @contextmanager
+    def get(self, key: str) -> Iterator[None]:
+        with self._guard:
+            lock = self._locks[key]
+        with lock:
+            if self._backend is None:
+                yield
+            else:
+                with self._backend(key):
+                    yield

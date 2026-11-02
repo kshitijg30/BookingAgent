@@ -19,13 +19,11 @@ from pydantic import BaseModel, Field, StringConstraints, model_validator
 from starlette.types import Send
 
 from booking_agent import __version__
-from booking_agent.admin import load_runtime
+from booking_agent.admin import DemoControls, load_runtime
 from booking_agent.admin import router as admin_router
 from booking_agent.app_state import App, AppState, UserId, notify_conversation_updated
-from booking_agent.catalog import DEFAULT_CATALOG, ServiceCatalog
-from booking_agent.config import Settings, build
+from booking_agent.config import DEFAULT_CATALOG, ServiceCatalog, Settings, build
 from booking_agent.conversation_view import conversation_view
-from booking_agent.demo import DemoControls
 from booking_agent.domain.entities import Address, Conversation, QuoteStatus, UserProfile
 from booking_agent.domain.memory import MAX_KEYS, public_memory, remove_key, set_key, valid_key, valid_value
 from booking_agent.errors import AccessDenied, EnqueueFailed, RequestConflict
@@ -394,7 +392,7 @@ async def _run_background_workers(app: FastAPI) -> AsyncIterator[None]:
     if not state.run_workers:
         yield
         return
-    from booking_agent.jobs.registry import JOB_HANDLERS
+    from booking_agent.jobs import JOB_HANDLERS
     from booking_agent.jobs.worker import JobWorker
 
     stop = threading.Event()

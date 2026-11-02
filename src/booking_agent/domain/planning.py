@@ -1,4 +1,6 @@
-"""Pure search rules: which dates to search, which slots fit, which providers to offer and in what order."""
+"""Pure search rules: which dates to search, which slots fit, which providers to offer and in what order.
+
+Also what a confirm needs before it may go ahead (``confirm_refusal``)."""
 
 from __future__ import annotations
 
@@ -6,10 +8,10 @@ from collections.abc import Collection, Sequence
 from datetime import date, datetime, time, timedelta
 from typing import Literal
 
-from booking_agent.domain.approval import MIN_LEAD
 from booking_agent.domain.contract import ProviderSummary
-from booking_agent.domain.entities import Criteria, ProviderOffer, Slot, TimeRange, Weekday
-from booking_agent.domain.models import IST
+from booking_agent.domain.entities import IST, Criteria, ProviderOffer, Quote, Slot, TimeRange, Weekday
+
+MIN_LEAD = timedelta(minutes=30)  # a slot that starts sooner than this is not offered or confirmed
 
 EmptyReason = Literal["no_providers", "over_budget", "no_slots_in_window", "preferred_provider_unavailable"]
 
@@ -136,3 +138,20 @@ def relaxed_variants(criteria: Criteria) -> list[tuple[str, Criteria]]:
         wider = int(criteria.max_price * RELAX_PRICE_FACTOR)
         variants.append(("budget", criteria.model_copy(update={"max_price": wider})))
     return variants
+
+
+def confirm_refusal(current: Quote | None, quote_id: str, version: int, now: datetime) -> str | None:
+    """Why a confirm for (quote_id, version) must do nothing, or None if it may go ahead.
+
+    The approval record is the ``Quote`` itself: the user confirms one quote id and version, and a quote that
+    changed price or time gets a new version. There is no separate approval object.
+    """
+    if current is None or current.id != quote_id:
+        return "stale"
+    if current.status == "confirmed":
+        return "already_confirmed"
+    if current.status != "shown" or current.version != version:
+        return "stale"
+    if current.action != "cancel" and current.start - now < MIN_LEAD:
+        return "too_soon"
+    return None

@@ -9,7 +9,7 @@ from typing import Any, TypeVar
 
 from booking_agent.clock import Clock
 from booking_agent.domain.contract import Hold, Outcome, ProviderDetails, ProviderSummary
-from booking_agent.domain.models import ProviderBooking
+from booking_agent.domain.entities import ProviderBooking
 from booking_agent.limits import TurnBudget
 from booking_agent.provider.client import ProviderClient
 from booking_agent.tracing import Tracer

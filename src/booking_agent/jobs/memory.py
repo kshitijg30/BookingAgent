@@ -13,7 +13,7 @@ The model calls run first. The writes are one transaction under the per-user loc
 
 from __future__ import annotations
 
-from booking_agent.domain.entities import ChatMessage, Conversation
+from booking_agent.domain.entities import ChatMessage, Conversation, Job
 from booking_agent.domain.memory import apply_operations, window_start
 from booking_agent.domain.memory_facts import (
     build_memory_messages,
@@ -24,8 +24,7 @@ from booking_agent.domain.memory_facts import (
     split_forgotten,
 )
 from booking_agent.flow.memory import change_memory
-from booking_agent.jobs.common import JobContext
-from booking_agent.rows import Job
+from booking_agent.jobs.worker import JobContext
 
 MAX_FOLDED_CHARS = 400  # per message sent to the summary prompt
 

@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from booking_agent.domain.models import IST
+from booking_agent.domain.entities import IST
 from booking_agent.errors import EnqueueFailed
 from booking_agent.model import call, say
 from tests.conftest import MakeWorld

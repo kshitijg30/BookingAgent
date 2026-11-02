@@ -20,20 +20,18 @@ from __future__ import annotations
 import dataclasses
 import logging
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from datetime import datetime
 
-from booking_agent.catalog import ServiceCatalog
-from booking_agent.clock import Clock
-from booking_agent.domain.entities import ChatMessage, Conversation
+from booking_agent.clock import Clock, KeyedLocks
+from booking_agent.config import ServiceCatalog
+from booking_agent.domain.entities import ChatMessage, Conversation, Job, JobRequest
 from booking_agent.domain.exits import ExitReason, exit_message
 from booking_agent.errors import AccessDenied, EnqueueFailed
 from booking_agent.flow.context import Deps, TurnContext, TurnRequest, TurnResult
-from booking_agent.flow.recovery import recover
+from booking_agent.flow.search import recover
 from booking_agent.gateway.calls import ProviderCalls
-from booking_agent.jobs.outbox import flush_outbox
 from booking_agent.limits import LimitHit, Limits, RateLimiter, TurnBudget
-from booking_agent.locks import KeyedLocks
 from booking_agent.model import ChatModel
 from booking_agent.ports import Repository
 from booking_agent.prompts import Prompts
@@ -249,3 +247,18 @@ def _save(
         for job in jobs:
             turn.events.append(("job_status", {"job_id": job.id, "kind": job.kind, "from": "none", "to": job.status}))
     return any(job.kind != "memory_update" for job in jobs)
+
+
+def flush_outbox(store: Repository, outbox: Sequence[JobRequest], now: datetime) -> list[Job]:
+    """Enqueue each requested job. Call it inside the same ``store.tx()`` as the conversation save."""
+    return [
+        store.enqueue_job(
+            kind=request.kind,
+            quote_id=request.quote_id,
+            payload=request.payload,
+            now=now,
+            run_at=request.run_at,
+            max_attempts=request.max_attempts,
+        )
+        for request in outbox
+    ]

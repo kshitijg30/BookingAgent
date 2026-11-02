@@ -13,8 +13,8 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from booking_agent.domain.approval import MIN_LEAD, confirm_refusal, idempotency_key
-from booking_agent.domain.entities import Quote, QuoteStatus
+from booking_agent.domain.entities import Quote, QuoteStatus, idempotency_key
+from booking_agent.domain.planning import MIN_LEAD, confirm_refusal
 from booking_agent.errors import RequestConflict
 from booking_agent.memory_repository import MemoryRepository
 

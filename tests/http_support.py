@@ -16,9 +16,8 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from booking_agent.catalog import DEFAULT_CATALOG
 from booking_agent.clock import FixedClock
-from booking_agent.config import Settings
+from booking_agent.config import DEFAULT_CATALOG, Settings
 from booking_agent.domain.entities import (
     Booking,
     ChatMessage,

@@ -14,10 +14,12 @@ from contextlib import AbstractContextManager, contextmanager
 from datetime import date, datetime, timedelta
 from typing import Any
 
+from booking_agent.clock import KeyedLocks
 from booking_agent.domain.entities import (
     Booking,
     BookingStatus,
     Conversation,
+    Job,
     JobKind,
     Quote,
     QuoteStatus,
@@ -25,9 +27,7 @@ from booking_agent.domain.entities import (
     UserProfile,
 )
 from booking_agent.errors import RequestConflict, VersionConflict
-from booking_agent.locks import KeyedLocks
 from booking_agent.ports import ist_day_bounds
-from booking_agent.rows import Job
 
 _ABSENT = object()  # journal marker: the key did not exist before the transaction
 _ACTIVE_JOB_STATUSES = ("pending", "running")

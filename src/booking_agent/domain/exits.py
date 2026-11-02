@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Literal, assert_never
 
-from booking_agent.domain.models import Frozen
+from booking_agent.domain.entities import Frozen
 
 ExitKind = Literal[
     "completed",

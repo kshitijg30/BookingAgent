@@ -56,7 +56,7 @@ def test_access_code_gates_the_user_api_but_not_health(tmp_path: Path) -> None:
 
 def test_memory_model_setting_defaults_to_the_main_model() -> None:
     from booking_agent.config import Settings, choose_memory_model
-    from booking_agent.llm import ScriptedChatModel
+    from booking_agent.model import ScriptedChatModel
 
     main = ScriptedChatModel()
     assert choose_memory_model(Settings(_env_file=None), main) is main
@@ -67,7 +67,7 @@ def test_a_different_memory_model_gets_its_own_client() -> None:
     from pydantic import SecretStr
 
     from booking_agent.config import Settings, choose_memory_model
-    from booking_agent.llm import ScriptedChatModel
+    from booking_agent.model import ScriptedChatModel
 
     settings = Settings(_env_file=None, llm_api_key=SecretStr("key"), memory_model="small-memory-model")
     memory_model = choose_memory_model(settings, ScriptedChatModel())

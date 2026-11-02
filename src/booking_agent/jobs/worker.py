@@ -6,6 +6,18 @@ host owns; ``wake`` ends its wait early, for a host that knows a job was just en
 A failed attempt retries after ``min(5 * 2**(attempts - 1), 300)`` seconds. A job that fails with no attempts left is
 marked dead and its ``on_dead`` hook runs. A running job whose lease expired is claimable again, and nothing marks
 it dead automatically, so the worker treats ``attempts > max_attempts`` as dead without running the handler.
+
+Also what every job handler shares: ``JobContext``, ``run_job_turn`` (a worker turn) and the ``Verdict`` a step
+gives. A step returns a ``Verdict``:
+
+- ``done``: finished; the worker completes the job.
+- ``settled``: the step already changed the job record in the same transaction (failed, or replaced by a new job).
+- ``unknown``: the provider's answer could not be verified; the worker retries the same job with backoff.
+
+A handler returns True when it already ended the job record in its own transaction (failed, or replaced by a new
+job) and False when the worker should complete the job. It raises when the attempt failed. ``JobHandler.on_dead``
+runs once when the job has no attempts left. The kind-to-handler table is ``JOB_HANDLERS`` in
+``booking_agent.jobs``; a job whose kind has no entry is marked dead by the worker.
 """
 
 from __future__ import annotations
@@ -13,14 +25,73 @@ from __future__ import annotations
 import logging
 import threading
 from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 from datetime import timedelta
+from typing import Any, Literal
 
-from booking_agent.flow.context import Deps
-from booking_agent.jobs.common import JobContext
-from booking_agent.jobs.registry import JobHandler
-from booking_agent.rows import Job
+from booking_agent.domain.entities import Job
+from booking_agent.flow.context import Deps, TurnContext, TurnRequest, TurnResult
 from booking_agent.tracing import Tracer
 from booking_agent.turn_runner import TurnRunner
+
+Verdict = Literal["done", "settled", "unknown"]
+FAILED_ATTEMPT_EXITS = ("internal_error", "quarantined")
+
+
+class OutcomeUnknown(RuntimeError):
+    """The provider's answer could not be verified. The job is retried with the same idempotency key."""
+
+
+@dataclass(frozen=True)
+class JobContext:
+    """What a handler receives. ``session_updated(conversation_id, trace_id, exit_kind)`` tells the host."""
+
+    deps: Deps
+    runner: TurnRunner
+    session_updated: Callable[[str, str | None, str], None]
+
+
+def run_job_turn(
+    context: JobContext, job: Job, step: Callable[[Deps, TurnContext], Verdict], payload: dict[str, Any]
+) -> Verdict:
+    """Run ``step`` as a worker turn for the job's conversation and return its verdict."""
+    box: list[Verdict] = []
+
+    def operation(deps: Deps, turn: TurnContext, request: TurnRequest) -> None:
+        box.append(step(deps, turn))
+
+    request = TurnRequest(
+        conversation_id=payload["conversation_id"],
+        user_id=payload["user_id"],
+        operation_data={"job": job.id, "kind": job.kind, "attempt": job.attempts},
+        source="worker",
+    )
+    result: TurnResult = context.runner.run(request, operation)
+    if result.exit.kind in FAILED_ATTEMPT_EXITS:
+        raise RuntimeError(f"worker turn ended with {result.exit.kind} ({result.exit.detail})")
+    context.session_updated(payload["conversation_id"], result.trace_id, result.exit.kind)
+    return box[0] if box else "unknown"
+
+
+def finish(verdict: Verdict) -> bool:
+    """Map a verdict to the handler's return value: True if the job record is already settled."""
+    if verdict == "unknown":
+        raise OutcomeUnknown("the provider's answer could not be verified yet")
+    return verdict == "settled"
+
+
+DEFAULT_MAX_ATTEMPTS = 5
+
+
+@dataclass(frozen=True)
+class JobHandler:
+    """How one job kind runs: ``handle`` does the work, ``on_dead(context, job, error)`` runs after the last failure."""
+
+    kind: str
+    handle: Callable[[JobContext, Job], bool]
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS
+    on_dead: Callable[[JobContext, Job, str], None] | None = None
+
 
 log = logging.getLogger("booking_agent.jobs")
 

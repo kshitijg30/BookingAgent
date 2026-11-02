@@ -11,11 +11,10 @@ import json
 import re
 from typing import Any
 
-from booking_agent.domain.entities import Criteria
+from booking_agent.domain.entities import IST, Criteria
 from booking_agent.domain.exits import ExitReason
 from booking_agent.domain.memory import confirmed_memory, key_to_ask, mark_asked, window_start
 from booking_agent.domain.memory_facts import split_forgotten
-from booking_agent.domain.models import IST
 from booking_agent.flow.context import Deps, TurnContext
 from booking_agent.flow.memory import change_memory
 from booking_agent.flow.search import failed_slots

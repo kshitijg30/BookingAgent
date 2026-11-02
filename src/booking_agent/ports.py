@@ -22,17 +22,17 @@ from datetime import date, datetime, time, timedelta
 from typing import Any, Protocol
 
 from booking_agent.domain.entities import (
+    IST,
     Booking,
     BookingStatus,
     Conversation,
+    Job,
     JobKind,
     Quote,
     QuoteStatus,
     Search,
     UserProfile,
 )
-from booking_agent.domain.models import IST
-from booking_agent.rows import Job
 
 
 def ist_day_bounds(date_from: date | None, date_to: date | None) -> tuple[datetime | None, datetime | None]:

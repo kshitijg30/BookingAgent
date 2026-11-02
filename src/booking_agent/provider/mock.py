@@ -23,7 +23,7 @@ import sqlalchemy as sa
 
 from booking_agent.clock import Clock
 from booking_agent.db import Database, TZDateTime
-from booking_agent.domain.models import IST, at_ist
+from booking_agent.domain.entities import IST, at_ist
 from booking_agent.errors import ProviderError, ProviderTimeout
 from booking_agent.provider.contract import ProviderCapabilities
 from booking_agent.provider.scenario import BookOutcome, Scenario

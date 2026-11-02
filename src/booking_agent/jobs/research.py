@@ -10,16 +10,14 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
-from booking_agent.domain.entities import Criteria
-from booking_agent.domain.models import IST
+from booking_agent.domain.entities import IST, Criteria, Job
 from booking_agent.domain.planning import SlotKey, build_offers, relaxed_variants, search_window
 from booking_agent.flow.context import Deps, TurnContext
 from booking_agent.flow.quotes import pick_slot
 from booking_agent.flow.search import SearchOutcome, failed_slots, store_search
-from booking_agent.jobs.common import JobContext, Verdict, finish, run_job_turn
+from booking_agent.jobs.worker import JobContext, Verdict, finish, run_job_turn
 from booking_agent.provider.client import ProviderClient
 from booking_agent.render import day_time, describe_criteria, format_rupees, offers_card, offers_text, safe_name
-from booking_agent.rows import Job
 
 MAX_WORKERS = 5
 RELAXED_WORDS = {

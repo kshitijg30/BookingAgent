@@ -10,7 +10,7 @@ from collections.abc import Callable
 from datetime import datetime, time
 from typing import Any
 
-from booking_agent.catalog import ServiceCatalog
+from booking_agent.config import ServiceCatalog
 from booking_agent.domain.entities import Criteria, TimeRange
 from booking_agent.domain.memory import Memory
 from booking_agent.domain.memory_facts import join_forgotten, split_forgotten

@@ -9,20 +9,30 @@ from __future__ import annotations
 
 import dataclasses
 import hmac
-from typing import TYPE_CHECKING, Annotated, Any, Literal
+from collections import deque
+from typing import TYPE_CHECKING, Annotated, Any, Literal, Protocol
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field, model_validator
 
 from booking_agent.app_state import App
 from booking_agent.config import Settings
-from booking_agent.demo import DemoControls
-from booking_agent.provider.scenario import BookOutcome
-from booking_agent.rows import Job
+from booking_agent.domain.entities import Job
+from booking_agent.provider.scenario import BookOutcome, Scenario
 from booking_agent.tracing import timeline
 
 if TYPE_CHECKING:
     from booking_agent.agent import Agent
+
+
+class DemoControls(Protocol):
+    """Optional demo-control port, separate from the operational booking provider."""
+
+    scenario: Scenario
+    forced_book: deque[BookOutcome]
+    forced_status_timeouts: int
+
+    def provider_cancel(self, booking_id: str) -> None: ...
 
 
 class RuntimeSettings(BaseModel):

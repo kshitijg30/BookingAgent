@@ -22,7 +22,7 @@ from booking_agent.domain.contract import (
     ProviderSummary,
     SlotModel,
 )
-from booking_agent.domain.models import IST, ProviderBooking
+from booking_agent.domain.entities import IST, ProviderBooking
 from booking_agent.domain.untrusted import Untrusted
 from booking_agent.errors import ProviderError, ProviderTimeout
 from booking_agent.provider.contract import ProviderAPI as ProviderAPI

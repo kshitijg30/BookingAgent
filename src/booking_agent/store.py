@@ -27,6 +27,7 @@ from booking_agent.domain.entities import (
     Booking,
     BookingStatus,
     Conversation,
+    Job,
     JobKind,
     Quote,
     QuoteStatus,
@@ -35,7 +36,6 @@ from booking_agent.domain.entities import (
 )
 from booking_agent.errors import RequestConflict, VersionConflict
 from booking_agent.ports import ist_day_bounds
-from booking_agent.rows import Job
 from booking_agent.schema import Migration
 
 ERROR_LIMIT = 2000

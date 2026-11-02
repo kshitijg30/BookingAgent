@@ -19,16 +19,14 @@ from pluggy import Result
 
 from booking_agent.agent import Agent, TurnResult
 from booking_agent.clock import FixedClock
-from booking_agent.domain.entities import Booking, Conversation, Quote, Search
-from booking_agent.domain.models import IST
+from booking_agent.domain.entities import IST, Booking, Conversation, Job, Quote, Search
 from booking_agent.flow.context import CardAction, TurnRequest
-from booking_agent.jobs.registry import JOB_HANDLERS
+from booking_agent.jobs import JOB_HANDLERS
 from booking_agent.jobs.worker import JobWorker
 from booking_agent.limits import Limits
 from booking_agent.model import ScriptedChatModel
 from booking_agent.provider.mock import MockProvider
 from booking_agent.provider.scenario import Scenario, SeedBooking
-from booking_agent.rows import Job
 from booking_agent.store import Store
 from booking_agent.tracing import read_jsonl_dir, timeline
 from booking_agent.turn_runner import Operation

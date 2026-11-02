@@ -7,7 +7,7 @@ from typing import Generic, Literal, TypeVar
 
 from pydantic import AwareDatetime, ConfigDict, Field, model_validator
 
-from booking_agent.domain.models import Frozen, ProviderBooking
+from booking_agent.domain.entities import Frozen, ProviderBooking
 from booking_agent.domain.untrusted import Untrusted
 
 T = TypeVar("T")

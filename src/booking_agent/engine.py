@@ -12,19 +12,17 @@ from zoneinfo import ZoneInfo
 
 from pydantic import AwareDatetime, Field, model_validator
 
-from booking_agent.catalog import ServiceCatalog
 from booking_agent.clock import Clock, SystemClock, ZonedClock
-from booking_agent.domain.entities import Criteria, ProviderOffer, Quote, TimeRange
+from booking_agent.config import ServiceCatalog
+from booking_agent.domain.entities import Criteria, Frozen, ProviderBooking, ProviderOffer, Quote, TimeRange
 from booking_agent.domain.exits import ExitReason
-from booking_agent.domain.models import Frozen, ProviderBooking
 from booking_agent.domain.planning import MAX_DAYS_AHEAD, WEEKDAYS, part_range
 from booking_agent.errors import ProviderError
-from booking_agent.flow.card_actions import confirm_quote, decline_quote
-from booking_agent.flow.context import Deps, TurnContext, TurnRequest, TurnResult
+from booking_agent.flow.context import Deps, TurnContext, TurnRequest, TurnResult, confirm_quote, decline_quote
 from booking_agent.flow.quotes import pick_slot
 from booking_agent.flow.search import run_new_search, search_offers
 from booking_agent.gateway.calls import ProviderCalls
-from booking_agent.jobs.registry import JOB_HANDLERS
+from booking_agent.jobs import JOB_HANDLERS
 from booking_agent.jobs.worker import JobWorker
 from booking_agent.limits import Limits
 from booking_agent.memory_repository import MemoryRepository
@@ -221,7 +219,7 @@ class BookingEngine:
         """Quote cancelling one of our bookings. Nothing changes until ``confirm``."""
 
         def operation(deps: Deps, turn: TurnContext, turn_request: TurnRequest) -> None:
-            from booking_agent.flow.tools.changes import PROPOSE_CANCELLATION
+            from booking_agent.flow.tools.booking import PROPOSE_CANCELLATION
 
             result = PROPOSE_CANCELLATION.handler(deps, turn, {"booking_id": booking_id})
             if "error" in result:
@@ -236,7 +234,7 @@ class BookingEngine:
         self._validate(request, self._clock.now().date())
 
         def operation(deps: Deps, turn: TurnContext, turn_request: TurnRequest) -> None:
-            from booking_agent.flow.tools.changes import PROPOSE_RESCHEDULE
+            from booking_agent.flow.tools.booking import PROPOSE_RESCHEDULE
 
             start = request.date_from or turn.now.date()
             args = {

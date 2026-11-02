@@ -15,11 +15,11 @@ from pathlib import Path
 
 from booking_agent.agent import Agent
 from booking_agent.clock import FixedClock
-from booking_agent.domain.models import IST
+from booking_agent.domain.entities import IST
 from booking_agent.flow.context import CardAction
-from booking_agent.jobs.registry import JOB_HANDLERS
+from booking_agent.jobs import JOB_HANDLERS
 from booking_agent.jobs.worker import JobWorker
-from booking_agent.llm import ScriptedChatModel, call, say
+from booking_agent.model import ScriptedChatModel, call, say
 from booking_agent.provider.mock import MockProvider
 from booking_agent.provider.scenario import Scenario
 from booking_agent.store import Store

@@ -1,23 +1,50 @@
-"""The data model: one frozen class per table, with the same fields.
+"""The data model: one frozen class per table, with the same fields. Also the shared base class, the business time
+zone and the provider's own view of a booking.
 
 A booking moves through these records in order:
 
     Search (what the user asked for and the offers that came back)
       -> Quote (one exact action shown with a Confirm button; the approval record)
-        -> Job (the background write, see rows.Job)
+        -> Job (the background write, see Job below)
           -> Booking (created only after the provider verifies the write)
 
-Lists inside a row (messages, results, phones, addresses, times) are stored as JSON columns.
-"""
+Lists inside a row (messages, results, phones, addresses, times) are stored as JSON columns."""
 
 from __future__ import annotations
 
-from datetime import date, time
+from dataclasses import dataclass
+from datetime import date, datetime, time
 from typing import Any, Literal, Self
+from zoneinfo import ZoneInfo
 
-from pydantic import AwareDatetime, ConfigDict, Field, model_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 
-from booking_agent.domain.models import Frozen
+IST = ZoneInfo("Asia/Kolkata")
+ProviderBookingStatus = Literal["upcoming", "completed", "cancelled", "cancelled_by_provider"]
+
+
+class Frozen(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+
+class ProviderBooking(Frozen):
+    """A booking as the provider reports it. The provider is the source of truth for status and history."""
+
+    booking_id: str
+    user_id: str
+    provider_id: str
+    provider_name: str
+    service: str
+    area: str
+    slot_start: AwareDatetime
+    slot_end: AwareDatetime
+    price: int
+    status: ProviderBookingStatus
+
+
+def at_ist(day: date, at: time) -> datetime:
+    return datetime.combine(day, at, tzinfo=IST)
+
 
 Weekday = Literal["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 MessageRole = Literal["user", "agent"]
@@ -198,3 +225,47 @@ class UserProfile(Frozen):
     # key -> {value, source: stated | inferred, confirmed, asked?}; see domain/memory.py
     memory: dict[str, Any] = Field(default_factory=dict)
     updated_at: AwareDatetime | None = None
+
+
+@dataclass(frozen=True)
+class Job:
+    """One unit of background work, stored in the same database as the state it changes.
+
+    ``pending`` waits for ``run_at``. A worker claims it and it becomes ``running`` with a lease until
+    ``locked_until``. It ends ``done``, or goes back to ``pending`` with a later ``run_at`` after a
+    failed attempt, or becomes ``dead`` once retries are used up. ``failed`` means the provider
+    verifiably did not apply the write; a new job is created if it should be tried again. A ``running``
+    job whose lease has expired can be claimed again.
+
+    ``quote_id`` is None only for ``memory_update``. ``payload`` holds ids only. The provider
+    idempotency key is ``f"{kind}:{id}"``.
+    """
+
+    id: str
+    kind: JobKind
+    quote_id: str | None
+    payload: dict[str, Any]
+    status: JobStatus
+    attempts: int
+    max_attempts: int
+    run_at: datetime
+    locked_until: datetime | None
+    last_error: str | None
+    created_at: datetime
+    updated_at: datetime
+
+
+@dataclass(frozen=True)
+class JobRequest:
+    """A job a turn wants queued. ``payload`` holds ids only."""
+
+    kind: JobKind
+    quote_id: str | None
+    payload: dict[str, Any]
+    run_at: datetime | None = None
+    max_attempts: int = 5
+
+
+def idempotency_key(kind: str, job_id: str) -> str:
+    """The key sent to the provider. One job is one key, so retries of a job repeat it."""
+    return f"{kind}:{job_id}"

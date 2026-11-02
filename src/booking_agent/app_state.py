@@ -9,10 +9,10 @@ from typing import TYPE_CHECKING, Annotated
 from fastapi import Depends, HTTPException, Request
 
 from booking_agent.config import Settings
-from booking_agent.demo import DemoControls
 from booking_agent.live_updates import SessionUpdates
 
 if TYPE_CHECKING:
+    from booking_agent.admin import DemoControls
     from booking_agent.agent import Agent
     from booking_agent.provider.client import ProviderAPI
 

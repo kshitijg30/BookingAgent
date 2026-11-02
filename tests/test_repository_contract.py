@@ -20,6 +20,7 @@ from booking_agent.domain.entities import (
     ChatMessage,
     Conversation,
     Criteria,
+    Job,
     ProviderOffer,
     Quote,
     QuoteStatus,
@@ -31,7 +32,6 @@ from booking_agent.domain.entities import (
 from booking_agent.errors import RequestConflict, VersionConflict
 from booking_agent.memory_repository import MemoryRepository
 from booking_agent.ports import Repository
-from booking_agent.rows import Job
 from booking_agent.store import Store
 
 NOW = datetime(2026, 11, 2, 9, 0, tzinfo=UTC)

@@ -122,12 +122,14 @@ Errors: another user's conversation is 404; a failed Confirm is 503; a store con
 
 | Package | Job |
 |---|---|
-| `domain/` | Models, approval, planning, memory, money, untrusted text |
-| `flow/` | Gather, hold, confirm, recovery, card actions, model tools |
-| `gateway/`, `jobs/` | Only path to the provider; job queue, worker, handlers |
-| `store.py`, `schema.py`, `rows.py` | SQL store, schema versions, rows |
+| `domain/` | `entities.py` (rows, Job, shared base types), `planning.py` (search rules, confirm rules), `memory.py`, `memory_facts.py`, `contract.py`, `exits.py`, `untrusted.py` |
+| `flow/` | `context.py` (Deps, turn context, card actions), `search.py` (search, provider-cancellation recovery), `quotes.py`, `conversation.py`, `memory.py`, `tools/` (`base.py`, `booking.py`, registry in `__init__.py`) |
+| `gateway/` | Only path to the provider |
+| `jobs/` | `worker.py` (worker, handler context), `writes.py` (book, cancel, reschedule, check, dead hooks), `research.py`, `memory.py`, handler table in `__init__.py` |
+| `store.py`, `schema.py`, `db.py` | SQL store, schema versions |
 | `turn_runner.py`, `agent.py`, `engine.py` | One turn; chat entry; `BookingEngine` library API |
-| `api.py`, `admin.py`, `web/` | Routes and UI |
+| `api.py`, `admin.py`, `web/` | Routes and UI; `admin.py` also holds the demo-controls port |
+| `config.py`, `clock.py`, `render.py` | Settings and `ServiceCatalog`; clock and `KeyedLocks`; reply texts and `format_rupees` |
 | `provider/`, `adapters/`, `model.py` | Provider contract and mock; model client |
 
 ## Known limits

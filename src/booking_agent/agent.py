@@ -18,17 +18,15 @@ from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 
-from booking_agent.catalog import DEFAULT_CATALOG, ServiceCatalog
-from booking_agent.clock import Clock
-from booking_agent.flow.card_actions import apply_card_action
-from booking_agent.flow.context import CardAction, Deps, TurnContext, TurnRequest, TurnResult
+from booking_agent.clock import Clock, KeyedLocks
+from booking_agent.config import DEFAULT_CATALOG, ServiceCatalog
+from booking_agent.flow.context import CardAction, Deps, TurnContext, TurnRequest, TurnResult, apply_card_action
 from booking_agent.flow.conversation import converse
 from booking_agent.flow.quotes import PickResult, pick_slot
-from booking_agent.flow.recovery import find_cancellations, notify_conversation
+from booking_agent.flow.search import find_cancellations, notify_conversation
 from booking_agent.flow.tools.booking import pick_result
 from booking_agent.gateway.calls import ProviderCalls
 from booking_agent.limits import Limits
-from booking_agent.locks import KeyedLocks
 from booking_agent.model import ChatModel
 from booking_agent.ports import Repository as Store
 from booking_agent.prompts import Prompts, load_prompts
