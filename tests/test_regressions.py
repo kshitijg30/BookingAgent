@@ -153,3 +153,16 @@ def test_worker_turn_without_messages_posts_no_fallback_reply(make_world: MakeWo
     )
     assert result.messages == [] or not any("What would you like" in m.text for m in result.messages)
     assert world.agent_texts() == before
+
+
+def test_format_rupees_uses_indian_digit_grouping() -> None:
+    from booking_agent.render import format_rupees
+
+    assert [format_rupees(n) for n in (0, 999, 1500, 100_000, 150_000, 12_345_678)] == [
+        "₹0",
+        "₹999",
+        "₹1,500",
+        "₹1,00,000",
+        "₹1,50,000",
+        "₹1,23,45,678",
+    ]

@@ -35,7 +35,7 @@ def quotes(draw: st.DrawFn, status: QuoteStatus = "shown") -> Quote:
         area="Koramangala",
         start=start,
         end=start + timedelta(hours=1),
-        price=draw(st.integers(10_000, 500_000)),
+        price=draw(st.integers(100, 5000)),
         version=draw(st.integers(1, 5)),
         status=status,
         created_at=NOW,

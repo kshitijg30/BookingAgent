@@ -38,7 +38,7 @@ def _list_bookings(deps: Deps, turn: TurnContext, args: dict[str, Any]) -> ToolO
                 "service": b.service,
                 "provider": b.provider_name[:MAX_NAME_CHARS],
                 "start": b.start.isoformat(),
-                "price_rupees": b.price / 100,
+                "price_rupees": b.price,
                 "status": b.status,
             }
             for b in bookings
@@ -55,7 +55,7 @@ def _list_quotes(deps: Deps, turn: TurnContext, args: dict[str, Any]) -> ToolOut
                 "action": q.action,
                 "provider": q.provider_name[:MAX_NAME_CHARS],
                 "start": q.start.isoformat(),
-                "price_rupees": q.price / 100,
+                "price_rupees": q.price,
                 "status": q.status,
             }
             for q in quotes[:20]

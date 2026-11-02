@@ -48,12 +48,12 @@ PERSONAL_MEMORY (`user_profiles.memory`), one key per fact:
  "preferred_providers": {"plumber": {"provider": "Iyer Plumbing", "technician": "Ravi"}}}
 ```
 
-`searches.criteria` (a correction copies the newest search with the changed fields; max_price is paise):
+`searches.criteria` (a correction copies the newest search with the changed fields; max_price is whole rupees):
 
 ```json
 {"service": "plumber", "area": "Indiranagar", "date_from": "2026-11-02", "date_to": "2026-11-08",
  "any_date": false, "days": ["mon", "tue", "wed", "thu", "fri"], "times": [{"from": "06:00", "to": "12:00"}],
- "max_price": 150000, "no_budget": false, "provider_id": null, "replaces_booking_id": null}
+ "max_price": 1500, "no_budget": false, "provider_id": null, "replaces_booking_id": null}
 ```
 
 Missing, so the model asks: service, area, dates (no date_from and not any_date), budget (no max_price and not no_budget).

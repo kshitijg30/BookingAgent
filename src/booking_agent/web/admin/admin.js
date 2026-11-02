@@ -105,7 +105,7 @@ async function loadTrace(traceId) {
 }
 
 // ---------------------------------------------------------------- bookings and quotes
-const rupees = (paise) => paise == null ? "" : "₹" + (paise / 100).toLocaleString("en-IN");
+const rupees = (amount) => amount == null ? "" : "₹" + amount.toLocaleString("en-IN");
 async function loadBookings() {
   const { bookings, quotes } = await api("/bookings");
   const tb = $("bookings-table").querySelector("tbody");

@@ -14,7 +14,6 @@ from booking_agent.catalog import ServiceCatalog
 from booking_agent.domain.entities import Criteria, TimeRange
 from booking_agent.domain.memory import Memory
 from booking_agent.domain.memory_facts import join_forgotten, split_forgotten
-from booking_agent.domain.money import to_paise
 from booking_agent.ports import Repository
 
 EVENING_END = time(22)
@@ -42,7 +41,7 @@ def prefill_criteria(criteria: Criteria, memory: Memory, catalog: ServiceCatalog
         update["area"] = area
     budget = _confirmed_value(memory, "max_budget")
     if criteria.max_price is None and not criteria.no_budget and isinstance(budget, int | float) and budget > 0:
-        update["max_price"] = int(to_paise(budget))
+        update["max_price"] = int(budget)
     earliest = _confirmed_value(memory, "earliest_time")
     if fill_times and not criteria.times and isinstance(earliest, str):
         try:
@@ -87,7 +86,7 @@ def drop_forgotten(criteria: Criteria, forgotten: list[str], text: str) -> Crite
     update: dict[str, Any] = {}
     if "area" in forgotten and criteria.area and criteria.area.casefold() not in lowered:
         update["area"] = None
-    if "max_budget" in forgotten and criteria.max_price is not None and str(criteria.max_price // 100) not in plain:
+    if "max_budget" in forgotten and criteria.max_price is not None and str(criteria.max_price) not in plain:
         update |= {"max_price": None, "no_budget": False}
     if "earliest_time" in forgotten and criteria.times:
         start = criteria.times[0].from_time

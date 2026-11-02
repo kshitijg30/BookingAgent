@@ -6,7 +6,6 @@ from datetime import date, time
 from typing import Any
 
 from booking_agent.domain.entities import Criteria, TimeRange, Weekday
-from booking_agent.domain.money import to_paise
 from booking_agent.domain.planning import WEEKDAYS, part_range
 
 DATE_PARAMETER: dict[str, Any] = {"type": "string", "description": "YYYY-MM-DD"}
@@ -76,7 +75,7 @@ def criteria_from_args(args: dict[str, Any], base: Criteria) -> Criteria:
     if "times" in args:
         update["times"] = parse_times(args["times"])
     if args.get("max_price_rupees") is not None:
-        update |= {"max_price": int(to_paise(args["max_price_rupees"])), "no_budget": False}
+        update |= {"max_price": int(args["max_price_rupees"]), "no_budget": False}
     elif args.get("no_budget"):
         update |= {"max_price": None, "no_budget": True}
     if args.get("service") and args["service"] != base.service and "same_provider_as_last_time" not in args:

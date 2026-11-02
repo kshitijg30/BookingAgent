@@ -36,7 +36,7 @@ class RuntimeSettings(BaseModel):
     book_success: float = Field(0.70, ge=0, le=1)
     book_slot_taken: float = Field(0.15, ge=0, le=1)
     book_timeout: float = Field(0.15, ge=0, le=1)  # half of timeouts actually booked
-    quote_drift_paise: int = Field(0, ge=0, le=500_000)
+    quote_drift_rupees: int = Field(0, ge=0, le=5_000)
     cancel_first_call_503: bool = True
 
     @model_validator(mode="after")
@@ -72,7 +72,7 @@ def apply_runtime(cfg: RuntimeSettings, *, base: Settings, agent: Agent, provide
         provider.scenario = dataclasses.replace(
             provider.scenario,
             book_mix=(cfg.book_success, cfg.book_slot_taken, cfg.book_timeout / 2),
-            quote_drift_paise=cfg.quote_drift_paise,
+            quote_drift_rupees=cfg.quote_drift_rupees,
             cancel_first_call_503=cfg.cancel_first_call_503,
         )
 

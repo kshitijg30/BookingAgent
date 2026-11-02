@@ -187,7 +187,13 @@ def _rework_tables(connection: Connection) -> None:
     md.create_all(connection)
 
 
-MIGRATIONS = (Migration(2, _add_jobs_table), Migration(3, _rework_tables))
+def _prices_to_rupees(connection: Connection) -> None:
+    """Schema version 4: quoted and booked prices were integer paise, now whole rupees."""
+    for table in (quotes, bookings):
+        connection.execute(table.update().values(price=table.c.price // 100))
+
+
+MIGRATIONS = (Migration(2, _add_jobs_table), Migration(3, _rework_tables), Migration(4, _prices_to_rupees))
 
 
 def _job(row: sa.RowMapping) -> Job:

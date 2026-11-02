@@ -94,7 +94,7 @@ def _offer(deps: Deps, turn: TurnContext, criteria: Criteria) -> ToolOutput:
                 "provider_id": offer.provider_id,
                 "name": offer.name[:MAX_NAME_CHARS],
                 "rating": offer.rating,
-                "price_rupees": offer.price / 100,
+                "price_rupees": offer.price,
                 "first_slot": offer.slots[0].start.isoformat(),
             }
             for offer in outcome.offers[:MAX_OFFERS_TOLD]
@@ -112,7 +112,7 @@ def quote_result(quote: Quote) -> dict[str, Any]:
             "provider": quote.provider_name[:MAX_NAME_CHARS],
             "start": quote.start.isoformat(),
             "end": quote.end.isoformat(),
-            "price_rupees": quote.price / 100,
+            "price_rupees": quote.price,
             "booking_id": quote.booking_id,
         },
         "next": "Tell the user briefly. They confirm on the card; nothing is booked until they do.",

@@ -33,7 +33,7 @@ class ExampleProvider:
             {
                 "id": "provider-1",
                 "name": "Example provider",
-                "price": 10000,
+                "price": 100,
                 "rating": 4.5,
                 "technician": None,
                 "free_slots": [{"start": self.slot.isoformat(), "end": (self.slot + timedelta(hours=1)).isoformat()}],
@@ -53,7 +53,7 @@ class ExampleProvider:
             "provider_id": provider_id,
             "slot": {"start": self.slot.isoformat(), "end": (self.slot + timedelta(hours=1)).isoformat()},
             "expires_at": (datetime.now(UTC) + timedelta(minutes=5)).isoformat(),
-            "quoted_price": 10000,
+            "quoted_price": 100,
         }
 
     def book(self, hold_id: str, idempotency_key: str) -> dict[str, Any]:
@@ -69,7 +69,7 @@ class ExampleProvider:
                 "area": "Koramangala",
                 "slot_start": self.slot.isoformat(),
                 "slot_end": (self.slot + timedelta(hours=1)).isoformat(),
-                "price": 10000,
+                "price": 100,
                 "status": "upcoming",
             },
         )

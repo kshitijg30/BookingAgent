@@ -154,7 +154,7 @@ def test_list_conversations_is_scoped_to_the_user(client: TestClient, agent: Fak
 
 def test_conversation_cards_are_resolved_from_current_rows(client: TestClient, agent: FakeAgent) -> None:
     seed_search(agent, "s1", "c1")
-    seed_quote(agent, "q1", "c1", status="confirmed", version=3, price=125000)
+    seed_quote(agent, "q1", "c1", status="confirmed", version=3, price=1250)
     seed_quote(agent, "q2", "c1", status="done", action="cancel")
     seed_booking(agent, "b1", "q2", "c1", status="cancelled")
     seed_conversation(
@@ -188,13 +188,13 @@ def test_conversation_cards_are_resolved_from_current_rows(client: TestClient, a
 
     quote = messages[2]["card"]
     assert quote["quote_id"] == "q1" and quote["reviews"] == ["Quick and tidy"]
-    assert (quote["status"], quote["version"], quote["price"], quote["action"]) == ("confirmed", 3, 125000, "book")
+    assert (quote["status"], quote["version"], quote["price"], quote["action"]) == ("confirmed", 3, 1250, "book")
     assert (quote["provider_name"], quote["service"]) == ("Best Co", "plumber")
     assert quote["start"].startswith("2026-11-03T12:00:00") and quote["end"].startswith("2026-11-03T13:00:00")
 
     confirmation = messages[3]["card"]
     assert confirmation["booking_id"] == "b1"
-    assert (confirmation["status"], confirmation["action"], confirmation["price"]) == ("cancelled", "cancel", 120000)
+    assert (confirmation["status"], confirmation["action"], confirmation["price"]) == ("cancelled", "cancel", 1200)
     assert (confirmation["service"], confirmation["provider_name"]) == ("plumber", "Best Co")
     assert "start" in confirmation and "end" in confirmation
 

@@ -13,7 +13,6 @@ from typing import Any
 from booking_agent.catalog import ServiceCatalog
 from booking_agent.domain.entities import Criteria, Quote
 from booking_agent.domain.models import IST
-from booking_agent.domain.money import fmt_rupees
 from booking_agent.domain.untrusted import Untrusted
 
 NOTICE_CARD: dict[str, Any] = {"type": "notice"}
@@ -113,8 +112,22 @@ def review_lines(reviews: Sequence[Untrusted]) -> list[str]:
     return shown[:MAX_REVIEWS_SHOWN]
 
 
+def format_rupees(amount: int) -> str:
+    """Whole rupees with Indian digit grouping: 1500 -> ₹1,500, 150000 -> ₹1,50,000."""
+    digits = str(abs(amount))
+    head, tail = digits[:-3], digits[-3:]
+    groups: list[str] = []
+    while len(head) > 2:
+        groups.insert(0, head[-2:])
+        head = head[:-2]
+    if head:
+        groups.insert(0, head)
+    grouped = ",".join([*groups, tail]) if groups else tail
+    return f"{'-' if amount < 0 else ''}₹{grouped}"
+
+
 def price_text(quote: Quote) -> str:
-    price = fmt_rupees(quote.price)
+    price = format_rupees(quote.price)
     if quote.action == "reschedule":
         return price + " (current booking price, assumed unchanged)"
     if quote.action == "cancel":
@@ -146,7 +159,7 @@ def confirmation_text(quote: Quote, booking_id: str) -> str:
     if quote.action == "book":
         return (
             f"Booked. {provider} will come for {service_label(quote.service)} on {when} "
-            f"for {fmt_rupees(quote.price)}. Booking reference {booking_id}."
+            f"for {format_rupees(quote.price)}. Booking reference {booking_id}."
         )
     if quote.action == "cancel":
         return f"Cancelled booking {booking_id} ({provider}, {when})."
@@ -170,5 +183,5 @@ def describe_criteria(criteria: Criteria) -> str:
     if criteria.times:
         parts.append(", ".join(f"{r.from_time:%H:%M}-{r.to_time:%H:%M}" for r in criteria.times))
     if criteria.max_price is not None:
-        parts.append(f"under {fmt_rupees(criteria.max_price)}")
+        parts.append(f"under {format_rupees(criteria.max_price)}")
     return ", ".join(parts) or "your request"

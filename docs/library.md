@@ -45,7 +45,7 @@ notice. Keep running the worker: later attempts and `check` jobs are due after a
 (`list_bookings`, `hold_slot`, `book`, `get_booking_status`) and `ChangeProvider` (`cancel`, `reschedule`) from
 `booking_agent.provider.contract`. Write methods take an idempotency key. Rules for an adapter:
 
-- Return plain dicts; they are validated into typed models immediately. Prices are integer minor units.
+- Return plain dicts; they are validated into typed models immediately. Prices are integer rupees.
 - Raise `ProviderError(code)` or `ProviderTimeout` for vendor failures. Set finite timeouts yourself.
 - Declare `ProviderCapabilities` honestly. Both flags default to false, so a `not_found` status never triggers a
   second write under a new key. Raise `ProviderError` for an unsupported call; do not fake a negative answer.

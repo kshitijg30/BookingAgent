@@ -30,7 +30,7 @@ class Scenario:
     # The brief's mix: 70% success, 15% slot_taken, 15% timeout of which half actually booked.
     book_mix: tuple[float, float, float] = (0.70, 0.15, 0.075)
     status_timeouts: int = 0  # first N get_booking_status calls time out
-    quote_drift_paise: int = 0  # added to the quoted price at hold time
+    quote_drift_rupees: int = 0  # rupees added to the quoted price at hold time
     quote_drift_holds: int = 1_000_000  # apply drift to the first N holds only
     hold_unavailable_first: int = 0  # first N hold_slot calls fail with slot_unavailable
     hold_ttl: timedelta = timedelta(minutes=10)

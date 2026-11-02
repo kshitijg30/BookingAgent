@@ -147,7 +147,7 @@ class MockProvider:
                     "id": f"{service[:3]}-{i + 1:02d}",
                     "name": f"{_NAMES[(i * 3 + len(service)) % len(_NAMES)]} {_LABEL[service]}",
                     "technician": _TECHS[(i * 7 + len(service)) % len(_TECHS)],
-                    "price": (_BASE_PRICE[service] + rng.randrange(-4, 9) * 50) * 100,
+                    "price": _BASE_PRICE[service] + rng.randrange(-4, 9) * 50,
                     "rating": round(rng.uniform(3.6, 4.9), 1),
                     "attributes": {"verified": rng.choice(["yes", "no"]), "jobs_done": str(rng.randrange(40, 900))},
                     "_index": i,
@@ -332,7 +332,7 @@ class MockProvider:
             raise ProviderError("slot_unavailable")
         price = provider["price"]
         if self._count("drift_holds") < self.scenario.quote_drift_holds:
-            price += self.scenario.quote_drift_paise
+            price += self.scenario.quote_drift_rupees
         hold_id = f"h-{uuid.uuid4().hex[:10]}"
         expires = self.clock.now() + self.scenario.hold_ttl
         self.db.exec(

@@ -49,7 +49,7 @@ def test_happy_path(make_world: MakeWorld, record: Record) -> None:
     assert (booking.provider_id, booking.price, booking.start) == (quote.provider_id, quote.price, quote.start)
     assert world.quotes()[0].status == "done"
     assert len(world.model.calls) == 2  # one tool call, one reply: pick and confirm never reached the model
-    record(actual=f"1 booking at {booking.price // 100} rupees; pick and confirm handled in code")
+    record(actual=f"1 booking at {booking.price} rupees; pick and confirm handled in code")
 
 
 @pytest.mark.scenario(id="S02", title="Correction keeps other fields", expected="only the dates change")
@@ -75,16 +75,16 @@ def test_correction_keeps_fields(make_world: MakeWorld, record: Record) -> None:
     id="S05", title="Price changes at hold", expected="quote shows the held price; no book before confirm"
 )
 def test_price_drift_at_hold(make_world: MakeWorld, record: Record) -> None:
-    world = make_world(scenario_with(quote_drift_paise=20_000, book_outcomes=("success",)))
+    world = make_world(scenario_with(quote_drift_rupees=200, book_outcomes=("success",)))
     ask_booking(world, max_price_rupees=None, no_budget=True)
     offered = offers(world)[0]
     pick_first(world)
     quote = quote_on_screen(world)
-    assert quote.price == offered.price + 20_000 and not tools(world, "book")
+    assert quote.price == offered.price + 200 and not tools(world, "book")
     world.confirm()
     world.run_jobs()
     assert world.bookings()[0].price == quote.price
-    record(actual=f"quote {quote.price // 100} vs search {offered.price // 100}; booked at the quote")
+    record(actual=f"quote {quote.price} vs search {offered.price}; booked at the quote")
 
 
 @pytest.mark.scenario(
@@ -95,18 +95,18 @@ def test_price_change_after_approval(make_world: MakeWorld, record: Record) -> N
     old = book_to_confirmation(world, max_price_rupees=None, no_budget=True)
     assert world.confirm().exit.kind == "queued"
     world.clock.advance(minutes=11)  # the hold runs out before the worker gets to it
-    world.provider.scenario = dataclasses.replace(world.provider.scenario, quote_drift_paise=15_000)
+    world.provider.scenario = dataclasses.replace(world.provider.scenario, quote_drift_rupees=150)
     (worker_result,) = world.run_jobs()
     current = quote_on_screen(world)
     assert current.id == old.id and current.version == 2 and current.status == "shown"
-    assert current.price == old.price + 15_000 and cards(worker_result) == ["quote"]
+    assert current.price == old.price + 150 and cards(worker_result) == ["quote"]
     assert not world.bookings() and not tools(world, "book")
     stale = world.confirm(old.id, 1)  # the old approval does nothing
     assert stale.exit.detail == "stale_proposal" and not world.jobs("book", "pending")
     world.confirm()
     world.run_jobs()
     assert [b.price for b in world.bookings()] == [current.price]
-    record(actual=f"price {old.price // 100} -> {current.price // 100}: version 2, booked only after second confirm")
+    record(actual=f"price {old.price} -> {current.price}: version 2, booked only after second confirm")
 
 
 @pytest.mark.scenario(
@@ -295,14 +295,14 @@ def _narrow(**changes: Any) -> Criteria:
         date_from=datetime(2026, 11, 2).date(),
         date_to=datetime(2026, 11, 3).date(),
         times=(TimeRange(from_time=datetime(2026, 1, 1, 10).time(), to_time=datetime(2026, 1, 1, 11).time()),),
-        max_price=80_000,
+        max_price=800,
     )
     return base.model_copy(update=changes)
 
 
 def test_research_prefers_the_original_search_over_relaxed(make_world: MakeWorld) -> None:
     world = make_world(scenario_with(hold_unavailable_first=1))
-    _fail_first_slot(world, _narrow(max_price=200_000))  # several slots fit; only one failed
+    _fail_first_slot(world, _narrow(max_price=2000))  # several slots fit; only one failed
     world.run_jobs()
     search = world.search()
     assert search is not None and search.criteria.relaxed == []
@@ -324,7 +324,7 @@ def test_research_relaxed_results_are_shown_without_a_hold(make_world: MakeWorld
 
 def test_research_with_nothing_found_asks_the_user(make_world: MakeWorld) -> None:
     world = make_world(scenario_with(hold_unavailable_first=1))
-    _fail_first_slot(world, _narrow(max_price=1_000))  # no provider costs ten rupees, even 25% more
+    _fail_first_slot(world, _narrow(max_price=10))  # no provider costs ten rupees, even 25% more
     results = world.run_jobs()
     assert world.current_quote() is None and not world.bookings()
     assert any("What would you like to change?" in r.text for r in results)
@@ -332,7 +332,7 @@ def test_research_with_nothing_found_asks_the_user(make_world: MakeWorld) -> Non
 
 def test_research_searches_run_at_the_same_time(make_world: MakeWorld) -> None:
     world = make_world(scenario_with(hold_unavailable_first=1))
-    wide = _narrow(days=("mon", "tue"), max_price=200_000)
+    wide = _narrow(days=("mon", "tue"), max_price=2000)
     _fail_first_slot(world, wide)
     assert len(relaxed_variants(wide)) == 4
     running, peak, lock = 0, 0, threading.Lock()

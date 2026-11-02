@@ -75,7 +75,7 @@ class Criteria(Frozen):
     """What the user asked for. ``None`` means not given yet.
 
     ``any_date`` and ``no_budget`` record "any day" and "no limit" so the agent never asks again.
-    Empty ``days`` means every day, empty ``times`` means any time. ``max_price`` is paise, a strict
+    Empty ``days`` means every day, empty ``times`` means any time. ``max_price`` is whole rupees, a strict
     upper bound.
     """
 
@@ -115,7 +115,7 @@ class ProviderOffer(Frozen):
     provider_id: str
     name: str
     rating: float | None
-    price: int  # paise, as listed by search
+    price: int  # rupees, as listed by search
     slots: tuple[Slot, ...]
 
 
@@ -151,7 +151,7 @@ class Quote(Frozen):
     area: str
     start: AwareDatetime
     end: AwareDatetime
-    price: int  # paise, as quoted by hold_slot
+    price: int  # rupees, as quoted by hold_slot
     hold_id: str | None = None
     hold_expires_at: AwareDatetime | None = None
     version: int = 1

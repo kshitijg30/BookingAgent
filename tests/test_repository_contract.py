@@ -66,7 +66,7 @@ def search(search_id: str = "s1", conversation_id: str = "c1", *, created: datet
         criteria=Criteria(service="plumber", area="Koramangala", any_date=True, no_budget=True),
         results=(
             ProviderOffer(
-                provider_id="p1", name="Iyer Plumbing", rating=4.5, price=50_000, slots=(Slot(start=SLOT, end=SLOT),)
+                provider_id="p1", name="Iyer Plumbing", rating=4.5, price=500, slots=(Slot(start=SLOT, end=SLOT),)
             ),
         ),
         created_at=created,
@@ -99,7 +99,7 @@ def quote(
             "area": "Koramangala",
             "start": start,
             "end": start + timedelta(hours=1),
-            "price": 50_000,
+            "price": 500,
             "hold_id": "h1",
             "hold_expires_at": created + timedelta(minutes=10),
             "status": status,
@@ -130,7 +130,7 @@ def booking(
         area="Koramangala",
         start=start,
         end=start + timedelta(hours=1),
-        price=50_000,
+        price=500,
         status=status,
         provider_booking_id="pb1",
         created_at=created,
@@ -233,7 +233,7 @@ def test_search_round_trips_criteria_and_results(repository: Repository) -> None
                 date_to=date(2026, 11, 5),
                 days=("mon", "tue"),
                 times=(TimeRange(**{"from": time(6), "to": time(12)}),),
-                max_price=100_000,
+                max_price=1000,
                 provider_id="p1",
                 replaces_booking_id="b9",
             )

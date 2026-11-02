@@ -182,9 +182,9 @@ def user_message(text: str) -> ChatMessage:
 
 def seed_search(agent: FakeAgent, search_id: str, conversation_id: str) -> Search:
     offers = (
-        ProviderOffer(provider_id="p-cheap", name="Cheap Co", rating=4.0, price=90000, slots=(Slot(start=at(10), end=at(11)),)),
-        ProviderOffer(provider_id="p-best", name="Best Co", rating=4.8, price=120000, slots=(Slot(start=at(12), end=at(13)),)),
-        ProviderOffer(provider_id="p-same", name="Same Rating Co", rating=4.0, price=80000, slots=()),
+        ProviderOffer(provider_id="p-cheap", name="Cheap Co", rating=4.0, price=900, slots=(Slot(start=at(10), end=at(11)),)),
+        ProviderOffer(provider_id="p-best", name="Best Co", rating=4.8, price=1200, slots=(Slot(start=at(12), end=at(13)),)),
+        ProviderOffer(provider_id="p-same", name="Same Rating Co", rating=4.0, price=800, slots=()),
     )  # fmt: skip
     search = Search(
         id=search_id,
@@ -209,7 +209,7 @@ def seed_quote(agent: FakeAgent, quote_id: str, conversation_id: str, **changes:
         "area": "Koramangala",
         "start": at(12),
         "end": at(13),
-        "price": 120000,
+        "price": 1200,
         "created_at": NOW,
         "updated_at": NOW,
     } | changes
@@ -230,7 +230,7 @@ def seed_booking(agent: FakeAgent, booking_id: str, quote_id: str, conversation_
         "area": "Koramangala",
         "start": at(12),
         "end": at(13),
-        "price": 120000,
+        "price": 1200,
         "created_at": NOW,
         "updated_at": NOW,
     } | changes

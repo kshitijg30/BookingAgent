@@ -54,7 +54,7 @@ class BookingRequest(Frozen):
     date_from: date | None = None
     date_to: date | None = None
     part_of_day: str = "any"
-    budget_paise: int | None = Field(default=None, gt=0)
+    budget_rupees: int | None = Field(default=None, gt=0)
     earliest_time: time | None = None
     exclude_weekdays: tuple[int, ...] = ()
 
@@ -86,8 +86,8 @@ class BookingRequest(Frozen):
             any_date=self.date_from is None,
             days=days,
             times=times,
-            max_price=self.budget_paise,
-            no_budget=self.budget_paise is None,
+            max_price=self.budget_rupees,
+            no_budget=self.budget_rupees is None,
         )
 
 

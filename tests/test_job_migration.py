@@ -1,4 +1,4 @@
-"""Schema version 3 replaces the tables of the earlier design and creates the new ones."""
+"""Schema version 3 replaces the tables of the earlier design and creates the new ones; version 4 turns paise into rupees."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from pathlib import Path
 
 import sqlalchemy as sa
 
-from booking_agent.store import Store
+from booking_agent.store import Store, bookings, quotes
 
 OLD_TABLES = ("sessions", "messages", "approvals", "user_memory")
 NEW_TABLES = {
@@ -74,7 +74,7 @@ def test_opening_a_version_2_database_drops_the_old_tables_and_creates_the_new_o
         tables = set(sa.inspect(engine).get_table_names())
         assert not tables.intersection(OLD_TABLES)
         assert tables >= NEW_TABLES
-        assert stored_version(engine) == 3
+        assert stored_version(engine) == 4
         assert {"quote_id", "payload"} <= column_names(engine, "jobs")
         assert "dedupe_key" not in column_names(engine, "jobs")
         assert {"start", "end", "provider_booking_id", "status"} <= column_names(engine, "bookings")
@@ -97,7 +97,7 @@ def test_the_migrated_database_works_and_opens_again_unchanged(tmp_path: Path) -
 
     second = Store(path)
     try:
-        assert stored_version(second.db.engine) == 3
+        assert stored_version(second.db.engine) == 4
         assert second.get_setting("after") == {"ok": 1}
         assert second.counts()["conversations"] == 0
     finally:
@@ -110,7 +110,7 @@ def test_a_fresh_database_gets_the_new_tables_at_version_3(tmp_path: Path) -> No
         tables = set(sa.inspect(store.db.engine).get_table_names())
         assert tables >= NEW_TABLES
         assert not tables.intersection(OLD_TABLES)
-        assert stored_version(store.db.engine) == 3
+        assert stored_version(store.db.engine) == 4
     finally:
         store.close()
 
@@ -131,3 +131,34 @@ def test_the_indexes_exist(tmp_path: Path) -> None:
         assert [index["column_names"] for index in unique] == [["user_id", "provider_id", "start"]]
     finally:
         store.close()
+
+
+def test_version_4_divides_stored_prices_by_100(tmp_path: Path) -> None:
+    path = tmp_path / "v3.sqlite3"
+    store = Store(path)
+    try:
+        with store.db.engine.begin() as connection:
+            for table in (quotes, bookings):
+                row: dict[str, object] = {}
+                for column in table.columns:
+                    if column.nullable:
+                        continue
+                    if column.name in ("start", "end", "created_at", "updated_at"):
+                        row[column.name] = NOW
+                    else:
+                        row[column.name] = 1 if column.name == "version" else "x"
+                row["id"] = "row1"
+                row["price"] = 150_000
+                connection.execute(table.insert().values(**row))
+            connection.execute(sa.text("update schema_versions set version = 3 where component = 'storage'"))
+    finally:
+        store.close()
+
+    reopened = Store(path)
+    try:
+        assert stored_version(reopened.db.engine) == 4
+        with reopened.db.engine.connect() as connection:
+            for table in (quotes, bookings):
+                assert connection.execute(sa.select(table.c.price)).scalar_one() == 1500
+    finally:
+        reopened.close()

@@ -5,11 +5,11 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 
 from booking_agent.domain.entities import Quote
-from booking_agent.domain.money import fmt_rupees
 from booking_agent.flow.quotes import show_quote
 from booking_agent.gateway.verify import check_book_status
 from booking_agent.jobs.common import JobContext, Verdict
 from booking_agent.jobs.write import WriteContext, run_write
+from booking_agent.render import format_rupees
 from booking_agent.rows import Job
 
 REHOLD_MARGIN = timedelta(seconds=30)  # re-hold when the hold expires sooner than this
@@ -71,7 +71,7 @@ def _rehold(ctx: WriteContext) -> Quote | Verdict:
         return renewed
     changed = renewed.model_copy(update={"version": quote.version + 1, "status": "shown", "confirmed_at": None})
     note = (
-        f"The price changed from {fmt_rupees(quote.price)} to {fmt_rupees(hold.quoted_price)} when I re-checked "
+        f"The price changed from {format_rupees(quote.price)} to {format_rupees(hold.quoted_price)} when I re-checked "
         "the slot, so I need your confirmation again."
     )
     show_quote(turn, changed, note=note, is_new=False)

@@ -26,7 +26,7 @@ def test_confirmed_memory_prefills_and_is_not_asked(make_world: MakeWorld, recor
     )
     reply = world.say("a plumber this week")
     search = world.search()
-    assert search is not None and search.criteria.area == "Koramangala" and search.criteria.max_price == 150_000
+    assert search is not None and search.criteria.area == "Koramangala" and search.criteria.max_price == 1500
     assert cards(reply) == ["offers"]  # no question card: nothing was missing
     record(actual="area and budget came from confirmed memory; offers shown without a question")
 

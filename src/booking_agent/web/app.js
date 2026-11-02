@@ -35,7 +35,7 @@ function button(cls, text, onClick) {
   b.addEventListener("click", onClick);
   return b;
 }
-const rupees = (p) => "₹" + Math.floor(p / 100).toLocaleString("en-IN") + (p % 100 ? "." + String(p % 100).padStart(2, "0") : "");
+const rupees = (p) => "₹" + p.toLocaleString("en-IN");
 let IST = { timeZone: "Asia/Kolkata" };
 const dayLabel = (iso) => new Date(iso).toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "short", ...IST });
 const hm = (iso) => new Date(iso).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", ...IST });

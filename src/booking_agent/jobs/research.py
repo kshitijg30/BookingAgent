@@ -12,14 +12,13 @@ from datetime import datetime
 
 from booking_agent.domain.entities import Criteria
 from booking_agent.domain.models import IST
-from booking_agent.domain.money import fmt_rupees
 from booking_agent.domain.planning import SlotKey, build_offers, relaxed_variants, search_window
 from booking_agent.flow.context import Deps, TurnContext
 from booking_agent.flow.quotes import pick_slot
 from booking_agent.flow.search import SearchOutcome, failed_slots, store_search
 from booking_agent.jobs.common import JobContext, Verdict, finish, run_job_turn
 from booking_agent.provider.client import ProviderClient
-from booking_agent.render import day_time, describe_criteria, offers_card, offers_text, safe_name
+from booking_agent.render import day_time, describe_criteria, format_rupees, offers_card, offers_text, safe_name
 from booking_agent.rows import Job
 
 MAX_WORKERS = 5
@@ -131,6 +130,6 @@ def _offer_best(deps: Deps, turn: TurnContext, search_id: str, count: int) -> No
         quote = result.quote
         turn.reply = (
             f"The next best option is {safe_name(quote.provider_name)}, {day_time(quote.start)}, "
-            f"{fmt_rupees(quote.price)}."
+            f"{format_rupees(quote.price)}."
         )
         turn.attach = (offers_text(count), offers_card(search_id))

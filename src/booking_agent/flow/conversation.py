@@ -16,14 +16,13 @@ from booking_agent.domain.exits import ExitReason
 from booking_agent.domain.memory import confirmed_memory, key_to_ask, mark_asked, window_start
 from booking_agent.domain.memory_facts import split_forgotten
 from booking_agent.domain.models import IST
-from booking_agent.domain.money import fmt_rupees
 from booking_agent.flow.context import Deps, TurnContext
 from booking_agent.flow.memory import change_memory
 from booking_agent.flow.search import failed_slots
 from booking_agent.flow.tools import run_tool, tool_definitions
 from booking_agent.limits import LimitHit
 from booking_agent.model import ChatError, ChatModel, tool_messages
-from booking_agent.render import describe_criteria, question
+from booking_agent.render import describe_criteria, format_rupees, question
 
 MAX_MODEL_STEPS = 5
 MAX_HISTORY_CHARS = 400  # per message
@@ -69,7 +68,7 @@ def _request_lines(criteria: Criteria) -> list[str]:
     if criteria.times:
         known.append("times = " + ", ".join(f"{r.from_time:%H:%M}-{r.to_time:%H:%M}" for r in criteria.times))
     if criteria.max_price is not None:
-        known.append(f"max price = {fmt_rupees(criteria.max_price)}")
+        known.append(f"max price = {format_rupees(criteria.max_price)}")
     elif criteria.no_budget:
         known.append("budget = no limit")
     if criteria.provider_id:
@@ -83,7 +82,7 @@ def _screen_lines(deps: Deps, turn: TurnContext) -> list[str]:
     if quote is not None:
         when = quote.start.astimezone(IST)
         name = quote.provider_name[:MAX_NAME_CHARS]
-        base = f"a {quote.action} quote for {name} at {when:%a %d %b %H:%M}, {fmt_rupees(quote.price)}"
+        base = f"a {quote.action} quote for {name} at {when:%a %d %b %H:%M}, {format_rupees(quote.price)}"
         if quote.status == "confirmed":
             return [f"On screen: {base}, confirmed by the user, waiting for the provider."]
         return [f"On screen: {base}, waiting for the user to confirm."]
