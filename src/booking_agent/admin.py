@@ -32,7 +32,7 @@ class DemoControls(Protocol):
     forced_book: deque[BookOutcome]
     forced_status_timeouts: int
 
-    def provider_cancel(self, booking_id: str) -> None: ...
+    def provider_cancel(self, booking_id: str) -> bool: ...
 
 
 class RuntimeSettings(BaseModel):
@@ -237,7 +237,11 @@ def clear(app: App) -> dict[str, bool]:
 
 @router.post("/demo/provider-cancel")
 def provider_cancel(body: ProviderCancel, app: App) -> dict[str, Any]:
-    _demo(app).provider_cancel(body.booking_id)
+    """Accepts our booking id or the provider's own id; the provider's table is keyed by its own."""
+    booking = app.agent.store.get_booking(body.booking_id)
+    provider_id = booking.provider_booking_id if booking and booking.provider_booking_id else body.booking_id
+    if not _demo(app).provider_cancel(provider_id):
+        raise HTTPException(404, "booking not found")
     return {"cancelled_by_provider": body.booking_id, "replacements_queued": app.agent.scan_provider_cancellations()}
 
 

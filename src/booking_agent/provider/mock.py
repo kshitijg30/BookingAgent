@@ -462,10 +462,15 @@ class MockProvider:
         return self._booking_dict(booking_id)
 
     # ---------- scenario control (not part of the contract) ----------
-    def provider_cancel(self, booking_id: str) -> None:
-        """Simulate the provider cancelling a booking on their side."""
-        self.db.exec(
-            t_bookings.update().where(t_bookings.c.booking_id == booking_id).values(status="cancelled_by_provider")
+    def provider_cancel(self, booking_id: str) -> bool:
+        """Simulate the provider cancelling a booking on their side (by the provider's booking id).
+
+        Returns whether a row changed.
+        """
+        return bool(
+            self.db.exec(
+                t_bookings.update().where(t_bookings.c.booking_id == booking_id).values(status="cancelled_by_provider")
+            )
         )
 
     def all_bookings(self) -> list[dict[str, Any]]:

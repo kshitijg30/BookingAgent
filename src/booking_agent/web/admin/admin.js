@@ -228,12 +228,14 @@ document.querySelectorAll("[data-next]").forEach((b) => b.addEventListener("clic
 $("status-timeouts").addEventListener("click", async () => { await api("/demo/status-timeouts", { method: "POST", body: JSON.stringify({ count: 3 }) }); loadDemo(); });
 $("demo-clear").addEventListener("click", async () => { await api("/demo/clear", { method: "POST" }); loadDemo(); });
 async function providerCancel(id) {
-  const r = await api("/demo/provider-cancel", { method: "POST", body: JSON.stringify({ booking_id: id }) });
-  $("cancel-status").textContent = `${r.cancelled_by_provider} cancelled by provider; ${r.replacements_queued} replacement search(es) queued.`;
+  try {
+    const r = await api("/demo/provider-cancel", { method: "POST", body: JSON.stringify({ booking_id: id }) });
+    $("cancel-status").textContent = `${r.cancelled_by_provider} cancelled by provider; ${r.replacements_queued} replacement search(es) queued.`;
+  } catch (err) { $("cancel-status").textContent = String(err.message); }
 }
 $("cancel-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  try { await providerCancel($("cancel-id").value.trim()); } catch (err) { $("cancel-status").textContent = String(err.message); }
+  await providerCancel($("cancel-id").value.trim());
 });
 
 // ---------------------------------------------------------------- start

@@ -405,6 +405,9 @@ async def _run_background_workers(app: FastAPI) -> AsyncIterator[None]:
         ),
     )
     state.agent.runner.on_jobs_queued = job_worker.wake
+    state.agent.on_conversation_updated = lambda conversation_id, trace_id, exit_kind: notify_conversation_updated(
+        state, conversation_id, trace_id, exit_kind
+    )
     jobs_thread = threading.Thread(target=job_worker.run_forever, args=(stop,), name="job-worker", daemon=True)
     watcher_thread = threading.Thread(
         target=_watch_provider_cancellations, args=(state, stop), name="provider-cancellation-watcher", daemon=True

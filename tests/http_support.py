@@ -106,8 +106,9 @@ class FakeDemoProvider:
         self.forced_status_timeouts = 0
         self.cancelled: list[str] = []
 
-    def provider_cancel(self, booking_id: str) -> None:
+    def provider_cancel(self, booking_id: str) -> bool:
         self.cancelled.append(booking_id)
+        return True
 
 
 @dataclass

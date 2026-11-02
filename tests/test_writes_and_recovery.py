@@ -5,12 +5,16 @@ from __future__ import annotations
 import dataclasses
 import logging
 from datetime import timedelta
+from pathlib import Path
 
 import pytest
+from fastapi.testclient import TestClient
 
+from booking_agent.api import create_app
 from booking_agent.errors import EnqueueFailed
 from tests.conftest import MakeWorld, Record, World
 from tests.helpers import book_to_confirmation, cards, pick_first, scenario_with, tools
+from tests.http_support import make_settings
 
 
 def _book_keys(world: World) -> list[str]:
@@ -216,3 +220,41 @@ def test_slot_taken_gives_a_message_at_the_worker_and_a_research_job(make_world:
     world.run_jobs()
     assert world.store.get_quote(quote.id).status == "failed"  # type: ignore[union-attr]
     assert len(world.jobs("research", "done")) == 1 and not world.bookings()
+
+
+def _book_one(world: World):  # type: ignore[no-untyped-def]
+    book_to_confirmation(world)
+    world.confirm()
+    world.run_jobs()
+    (booking,) = world.bookings()
+    assert booking.provider_booking_id and booking.provider_booking_id != booking.id
+    return booking
+
+
+def test_admin_provider_cancel_with_our_booking_id_cancels_and_queues_replacement(
+    make_world: MakeWorld, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("BA_ADMIN_CODE", "adm")
+    world = make_world(scenario_with(book_outcomes=("success", "success")))
+    booking = _book_one(world)
+    app = create_app(make_settings(tmp_path), agent=world.agent, provider=world.provider, run_workers=False)
+    with TestClient(app) as client:
+        headers = {"X-Admin-Code": "adm"}
+        missing = client.post("/admin/api/demo/provider-cancel", headers=headers, json={"booking_id": "bk-nope"})
+        assert missing.status_code == 404 and missing.json() == {"detail": "booking not found"}
+        response = client.post("/admin/api/demo/provider-cancel", headers=headers, json={"booking_id": booking.id})
+    assert response.status_code == 200 and response.json()["replacements_queued"] == 1
+    assert world.bookings(status=None)[0].status == "cancelled_by_provider"
+    search = world.search()
+    assert search is not None and search.criteria.replaces_booking_id == booking.id
+
+
+def test_provider_cancellation_scan_tells_the_open_chat_once(make_world: MakeWorld) -> None:
+    world = make_world(scenario_with(book_outcomes=("success", "success")))
+    booking = _book_one(world)
+    calls: list[tuple[str, str | None, str]] = []
+    world.agent.on_conversation_updated = lambda *args: calls.append(args)
+    world.provider.provider_cancel(booking.provider_booking_id or "")
+    assert world.agent.scan_provider_cancellations() == 1
+    assert calls == [(booking.conversation_id, None, "provider_cancelled")]
+    assert world.agent.scan_provider_cancellations() == 0 and len(calls) == 1

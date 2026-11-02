@@ -64,6 +64,8 @@ class Agent:
         self.telemetry = telemetry or Telemetry(trace_dir=trace_dir)
         self.default_prompts = prompts or load_prompts()
         self._scan_lock = threading.Lock()
+        # (conversation_id, trace_id, exit_kind): called after the scan saved a notice, so open chats can refresh
+        self.on_conversation_updated: Callable[[str, str | None, str], None] | None = None
         deps = build_deps(
             store=store,
             provider_client=self.provider_client,
@@ -172,5 +174,7 @@ class Agent:
                     for item in find_cancellations(deps, calls, user_id, now):
                         notify_conversation(deps, item, now)
                         found += 1
+                        if self.on_conversation_updated is not None:
+                            self.on_conversation_updated(item.booking.conversation_id, None, "provider_cancelled")
                     tracer.finish()
         return found
